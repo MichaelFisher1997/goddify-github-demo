@@ -58,8 +58,6 @@ jobs:
       run: |
         echo "=== DEBUGGING ACTION INPUTS ==="
         echo "GODIFFY_API_KEY exists: ${{ secrets.GODIFFY_API_KEY != '' }}"
-        echo "Secret length: ${{ secrets.GODIFFY_API_KEY | length }}"
-        echo ""
         echo "About to call action with:"
         echo "api_key: [REDACTED]"
         echo "images_path: './screenshots'"
