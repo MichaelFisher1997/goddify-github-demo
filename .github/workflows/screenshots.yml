@@ -69,9 +69,15 @@ jobs:
         
     - name: Force cache clear
       run: echo "Clearing cache at $(date)"
-      
+        
+    - name: Test environment variables
+      run: |
+        echo "Testing env var format..."
+        echo "INPUT_API_KEY would be: ${{ secrets.GODIFFY_API_KEY }}"
+        echo "Length: $(echo '${{ secrets.GODIFFY_API_KEY }}' | wc -c)"
+        
     - name: Upload screenshots to godiffy-gitactions
-      uses: MichaelFisher1997/godiffy-gitactions@11ca534d15dcdd648c1a7f556d63e01be8bdd728
+      uses: MichaelFisher1997/godiffy-gitactions@main
       with:
         api_key: ${{ secrets.GODIFFY_API_KEY }}
         images_path: './screenshots'
