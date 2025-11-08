@@ -46,8 +46,6 @@ jobs:
         
     - name: Upload screenshots to godiffy-gitactions
       uses: MichaelFisher1997/godiffy-gitactions@dev
-      env:
-        GODIFFY_API_KEY: ${{ secrets.GODIFFY_API_KEY }}
       with:
         api-key: ${{ secrets.GODIFFY_API_KEY }}
         images-path: './screenshots'
