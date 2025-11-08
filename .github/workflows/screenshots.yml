@@ -44,6 +44,16 @@ jobs:
         echo "Waiting 40 seconds for Railway deployment..."
         sleep 40
         
+    - name: Debug secrets
+      run: |
+        echo "Checking if secret exists..."
+        if [ -n "${{ secrets.GODIFFY_API_KEY }}" ]; then
+          echo "✅ GODIFFY_API_KEY secret is available"
+          echo "Secret length: $(echo '${{ secrets.GODIFFY_API_KEY }}' | wc -c)"
+        else
+          echo "❌ GODIFFY_API_KEY secret is missing"
+        fi
+        
     - name: Upload screenshots to godiffy-gitactions
       uses: MichaelFisher1997/godiffy-gitactions@dev
       with:
