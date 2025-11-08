@@ -257,6 +257,47 @@ body {
   color: white;
 }
 
+/* Page specific styles */
+.page {
+  min-height: calc(100vh - 200px);
+}
+
+.cta-section {
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.cta-section h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.cta-section p {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+/* Pricing specific */
+.pricing {
+  padding: 4rem 0;
+  background: #f8fafc;
+}
+
+.pricing h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.pricing .container > p {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .hero h1 {

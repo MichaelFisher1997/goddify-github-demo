@@ -4,13 +4,40 @@ services:
   react-app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3005:3000"
     environment:
       - NODE_ENV=development
+      - REACT_APP_SELENIUM_HOST=selenium
     volumes:
       - .:/app
       - /app/node_modules
     stdin_open: true
     tty: true
+    depends_on:
+      - selenium
+
+  selenium:
+    image: selenium/standalone-chrome:latest
+    ports:
+      - "4445:4444"
+    environment:
+      - SE_NODE_MAX_SESSIONS=1
+      - SE_NODE_SESSION_TIMEOUT=60
+    volumes:
+      - /dev/shm:/dev/shm
+
+  nightwatch:
+    build:
+      context: .
+      dockerfile: Dockerfile.nightwatch
+    environment:
+      - SELENIUM_HOST=selenium
+      - TEST_URL=http://react-app:3000
+    volumes:
+      - ./screenshots:/app/screenshots
+    depends_on:
+      - react-app
+      - selenium
+    command: ["npm", "run", "test:e2e"]
