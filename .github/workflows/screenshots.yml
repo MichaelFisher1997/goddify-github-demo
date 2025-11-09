@@ -52,7 +52,7 @@ jobs:
         create-report: true
 
     - name: Comment on PR with results
-      if: always() && steps.compare.outputs['report-url'] != ''
+      if: always()
       uses: actions/github-script@v7
       with:
         script: |
@@ -61,8 +61,14 @@ jobs:
           const avgSim = '${{ steps.compare.outputs['average-similarity'] }}';
           const reportUrl = '${{ steps.compare.outputs['report-url'] }}';
           const thresholdMet = '${{ steps.compare.outputs['threshold-met'] }}' === 'true';
-          const failed = total - passed;
           
+          // Skip if no comparison data
+          if (!total || !reportUrl) {
+            console.log('No comparison results available, skipping comment');
+            return;
+          }
+          
+          const failed = total - passed;
           const status = thresholdMet ? '✅ PASSED' : '❌ FAILED';
           const icon = thresholdMet ? '✅' : '❌';
           
