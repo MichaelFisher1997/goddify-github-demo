@@ -11,7 +11,7 @@ function Home() {
       <section className="hero">
         <div className="container">
           <h1>Compare Images Instantly ⚡</h1>
-          <p>The most powerful visual diff tool to spot differences between images with pixel-perfect accuracy</p>
+          <p>The most powerful visual diff tool to spot differences between images with pixel-perfect accuracy and speed</p>
           <div className="hero-buttons">
             <Link to="/demo" className="btn-primary">Start Free Trial</Link>
             <Link to="/features" className="btn-secondary">Learn More</Link>
