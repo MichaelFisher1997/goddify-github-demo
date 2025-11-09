@@ -22,7 +22,8 @@ jobs:
       with:
         api-key: ${{ secrets.GODIFFY_API_KEY }}
         site-id: 9b85b790-c00e-4cfa-aed8-848617a6dd8d
-        images-path: './screenshots'
+        capture-screenshots: true
+        config-path: './godiffy.json'
         base-url: https://godiffy-backend-dev.up.railway.app
         create-report: false
 
