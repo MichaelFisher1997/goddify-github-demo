@@ -71,10 +71,10 @@ jobs:
         echo "About to call action with:"
         echo "api_key: [REDACTED]"
         echo "images_path: './screenshots'"
-        echo "site_id: 'goddify-github-demo'"
+        echo "        site_id: '9b85b790-c00e-4cfa-aed8-848617a6dd8d'"
         echo "branch: ${{ github.ref_name }}"
         echo "commit: ${{ github.sha }}"
-        echo "base_url: ${{ github.ref == 'refs/heads/master' && 'https://goddify-github-demo-production.up.railway.app' || 'https://godiffy-gitactions-demo.up.railway.app' }}"
+        echo "        base_url: https://godiffy-backend-dev.up.railway.app"
         echo "=== END DEBUG ==="
         
     - name: Force cache clear
@@ -97,7 +97,7 @@ jobs:
         base-url: https://godiffy-backend-dev.up.railway.app
         create-report: ${{ github.event_name == 'pull_request' && 'true' || 'false' }}
         baseline-branch: master
-        baseline-commit: 84ca5c910e058deb8584df0fc954f4750e0d9ea6
+        baseline-commit: latest
         report-name: PR #${{ github.event.number }} - ${{ github.ref_name }} vs master
         report-description: Visual regression test for PR #${{ github.event.number }}
         
