@@ -36,6 +36,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Wait for upload to complete
+      if: needs.upload-screenshots.result != 'skipped'
+      run: sleep 10
+
     - name: Run visual regression comparison
       id: compare
       uses: MichaelFisher1997/godiffy-github-actions@dev
