@@ -2,9 +2,7 @@ name: GoDiffy Visual Regression
 
 on:
   push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
 
 jobs:
   visual-regression:
@@ -22,8 +20,6 @@ jobs:
         site-id: 9b85b790-c00e-4cfa-aed8-848617a6dd8d
         images-path: './screenshots'
         base-url: https://godiffy-backend-dev.up.railway.app
-        baseline-branch: master
-        baseline-commit: latest
         create-report: false
 
     - name: Run visual regression comparison
@@ -34,7 +30,7 @@ jobs:
         api-key: ${{ secrets.GODIFFY_API_KEY }}
         site-id: 9b85b790-c00e-4cfa-aed8-848617a6dd8d
         base-url: https://godiffy-backend-dev.up.railway.app
-        baseline-branch: master
+        baseline-branch: ${{ github.base_ref }}
         baseline-commit: latest
         create-report: true
         algorithm: pixelmatch
