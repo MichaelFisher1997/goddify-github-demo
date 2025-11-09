@@ -66,8 +66,27 @@ jobs:
           const status = thresholdMet ? '✅ PASSED' : '❌ FAILED';
           const icon = thresholdMet ? '✅' : '❌';
           
+          // Find PR number for push events
+          let prNumber = context.issue.number;
+          if (!prNumber && context.eventName === 'push') {
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${context.ref.replace('refs/heads/', '')}`
+            });
+            if (prs.data.length > 0) {
+              prNumber = prs.data[0].number;
+            }
+          }
+          
+          if (!prNumber) {
+            console.log('No PR found, skipping comment');
+            return;
+          }
+          
           github.rest.issues.createComment({
-            issue_number: context.issue.number,
+            issue_number: prNumber,
             owner: context.repo.owner,
             repo: context.repo.repo,
             body: `## ${icon} Visual Regression Report - ${status}
