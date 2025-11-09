@@ -1,4 +1,4 @@
-name: Screenshot Tests and Upload
+name: GoDiffy Visual Regression
 
 on:
   push:
@@ -7,138 +7,60 @@ on:
     branches: [ master ]
 
 jobs:
-  screenshot-tests:
+  visual-regression:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        
-    - name: Install Docker Compose
-      run: |
-        sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
-        
-    - name: Start Docker services
-      run: |
-        docker-compose up -d
-        
-    - name: Wait for React app to be ready
-      run: |
-        echo "Waiting for React app to start..."
-        sleep 10
-        timeout 60 bash -c 'until curl -f http://localhost:3005; do sleep 2; done'
-        
-    - name: Configure target URL and update Nightwatch config
-      run: |
-        TARGET_URL="${{ github.ref == 'refs/heads/master' && 'https://godiffy-github-demo-production.up.railway.app' || 'https://godiffy-github-demo-dev.up.railway.app' }}"
-        echo "TARGET_URL=$TARGET_URL"
-        echo "Taking screenshots of: $TARGET_URL"
-        
-        # Update nightwatch.json with the target URL
-        jq --arg url "$TARGET_URL" '.test_settings.default.launch_url = $url' nightwatch.json > nightwatch-temp.json
-        mv nightwatch-temp.json nightwatch.json
-        
-    - name: Run screenshot tests
-      run: |
-        docker-compose run --rm nightwatch npm run test:e2e
-        
-    - name: Wait for deployment (master only)
-      if: github.ref == 'refs/heads/master'
-      run: |
-        echo "Waiting 40 seconds for Railway deployment..."
-        sleep 40
-        
-    - name: Debug secrets
-      run: |
-        echo "Checking if secret exists..."
-        if [ -n "${{ secrets.GODIFFY_API_KEY }}" ]; then
-          echo "✅ GODIFFY_API_KEY secret is available"
-          echo "Secret length: $(echo '${{ secrets.GODIFFY_API_KEY }}' | wc -c)"
-        else
-          echo "❌ GODIFFY_API_KEY secret is missing"
-        fi
-        
-    - name: Debug action inputs
-      run: |
-        echo "=== DEBUGGING ACTION INPUTS ==="
-        echo "GODIFFY_API_KEY exists: ${{ secrets.GODIFFY_API_KEY != '' }}"
-        echo "About to call action with:"
-        echo "api_key: [REDACTED]"
-        echo "images_path: './screenshots'"
-        echo "        site_id: '9b85b790-c00e-4cfa-aed8-848617a6dd8d'"
-        echo "branch: ${{ github.ref_name }}"
-        echo "commit: ${{ github.sha }}"
-        echo "        base_url: https://godiffy-backend-dev.up.railway.app"
-        echo "=== END DEBUG ==="
-        
-    - name: Force cache clear
-      run: echo "Clearing cache at $(date)"
-        
-    - name: Test environment variables
-      run: |
-        echo "Testing env var format..."
-        echo "INPUT_API_KEY would be: ${{ secrets.GODIFFY_API_KEY }}"
-        echo "Length: $(echo '${{ secrets.GODIFFY_API_KEY }}' | wc -c)"
-        
-    - name: Upload screenshots to godiffy-gitactions
-      uses: MichaelFisher1997/godiffy-gitactions@dev
+
+    - name: Upload screenshots to GoDiffy
+      id: upload
+      uses: MichaelFisher1997/godiffy-github-actions@dev
       with:
         api-key: ${{ secrets.GODIFFY_API_KEY }}
+        site-id: 9b85b790-c00e-4cfa-aed8-848617a6dd8d
         images-path: './screenshots'
-        site-id: '9b85b790-c00e-4cfa-aed8-848617a6dd8d'
-        branch: ${{ github.ref_name }}
-        commit: ${{ github.sha }}
         base-url: https://godiffy-backend-dev.up.railway.app
-        create-report: ${{ github.event_name == 'pull_request' && 'true' || 'false' }}
         baseline-branch: master
         baseline-commit: latest
-        report-name: PR #${{ github.event.number }} - ${{ github.ref_name }} vs master
-        report-description: Visual regression test for PR #${{ github.event.number }}
-        
-    - name: Comment on PR with report link
-      if: github.event_name == 'pull_request' && steps.upload.outputs.report-url != ''
+        create-report: false
+
+    - name: Run visual regression comparison
+      id: compare
+      if: github.event_name == 'pull_request'
+      uses: MichaelFisher1997/godiffy-github-actions@dev
+      with:
+        api-key: ${{ secrets.GODIFFY_API_KEY }}
+        site-id: 9b85b790-c00e-4cfa-aed8-848617a6dd8d
+        base-url: https://godiffy-backend-dev.up.railway.app
+        baseline-branch: master
+        baseline-commit: latest
+        create-report: true
+        algorithm: pixelmatch
+        threshold: 0.9
+
+    - name: Comment on PR with results
+      if: github.event_name == 'pull_request' && steps.compare.outputs['report-url'] != ''
       uses: actions/github-script@v7
       with:
         script: |
+          const passed = '${{ steps.compare.outputs['passed-comparisons'] }}';
+          const total = '${{ steps.compare.outputs['total-comparisons'] }}';
+          const avgSim = '${{ steps.compare.outputs['average-similarity'] }}';
+          const reportUrl = '${{ steps.compare.outputs['report-url'] }}';
+          const failed = total - passed;
+          
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
             body: `## 📊 Visual Regression Report
             
-            Comparison report has been generated for this PR!
-            
-            **🔗 View Report:** [${{ steps.upload.outputs.report-url }}](${{ steps.upload.outputs.report-url }})
-            
-            **📸 Screenshots Compared:**
-            - Baseline: \`master\` @ \`84ca5c9\`
-            - Current: \`${{ github.ref_name }}\` @ \`${{ github.sha }}\`
-            
-            **📊 Results:**
-            - Total Comparisons: ${{ steps.upload.outputs.total-comparisons }}
-            - Differences Found: ${{ steps.upload.outputs.differences-found == 'true' && '⚠️ Yes' || '✅ No' }}
+            **Results:** ${passed}/${total} comparisons passed (${avgSim}% average similarity)
+            ${failed > 0 ? '⚠️ ' + failed + ' visual change(s) detected' : '✅ All comparisons passed'}
+            ${reportUrl ? '\n**🔗 [View Full Report](' + reportUrl + ')**' : ''}
             
             ---
             *Generated by GoDiffy GitHub Action*`
           })
-        
-
-        
-    - name: Upload screenshots as artifacts
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: screenshots-${{ github.ref_name == 'refs/heads/master' && 'master' || 'pr' }}
-        path: screenshots/
-        retention-days: 30
-        
-    - name: Cleanup
-      if: always()
-      run: |
-        docker-compose down
