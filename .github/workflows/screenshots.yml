@@ -84,7 +84,7 @@ jobs:
         site-id: '9b85b790-c00e-4cfa-aed8-848617a6dd8d'
         branch: ${{ github.ref_name }}
         commit: ${{ github.sha }}
-        base-url: https://godiffy-backend-dev.up.railway.app
+        base-url: ${{ github.ref == 'refs/heads/master' && 'https://godiffy-backend-production.up.railway.app' || 'https://godiffy-backend-dev.up.railway.app' }}
 
         
     - name: Upload screenshots as artifacts
