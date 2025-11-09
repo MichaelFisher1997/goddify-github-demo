@@ -24,7 +24,8 @@ jobs:
         create-report: false
 
   compare-screenshots:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && always()
+    needs: upload-screenshots
     runs-on: ubuntu-latest
     permissions:
       contents: read
