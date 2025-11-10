@@ -87,7 +87,7 @@ jobs:
           }
           
           // Fetch latest report for this commit
-          const reportsUrl = `${baseUrl}/api/v2/reports?siteId=${siteId}&candidateBranch=${branch}&candidateCommit=${commit}&limit=1`;
+          const reportsUrl = `${baseUrl}/api/v2/sites/${siteId}/reports?candidateBranch=${branch}&candidateCommit=${commit}&limit=1`;
           const reportsRes = await fetch(reportsUrl, {
             headers: { 'Authorization': `Bearer ${apiKey}` }
           });
